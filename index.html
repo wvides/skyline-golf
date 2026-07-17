@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Skyline Golf</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='white' stroke='%23999' stroke-width='4'/%3E%3Ccircle cx='38' cy='38' r='7' fill='%23ddd'/%3E%3Ccircle cx='59' cy='33' r='7' fill='%23ddd'/%3E%3Ccircle cx='67' cy='52' r='7' fill='%23ddd'/%3E%3Ccircle cx='41' cy='59' r='7' fill='%23ddd'/%3E%3Ccircle cx='57' cy='68' r='7' fill='%23ddd'/%3E%3C/svg%3E"
+    />
+    <meta name="description" content="A challenging vertical golf game. Drag, shoot, and climb to the top in as few strokes as possible." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400..800&family=Nunito:wght@400..900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <!-- DOM UI overlay -->
+    <div id="ui-root">
+      <!-- Start screen -->
+      <div id="start-screen" class="screen">
+        <div class="cloud cloud-a"></div>
+        <div class="cloud cloud-b"></div>
+        <div class="cloud cloud-c"></div>
+        <div class="start-content">
+          <h1 class="game-title">
+            <span class="title-top">Skyline</span>
+            <span class="title-bottom">Golf</span>
+          </h1>
+          <p class="tagline">A challenging vertical golf game.</p>
+
+          <div class="level-card">
+            <div class="level-date">
+              <span id="level-date-text">—</span>
+              <span id="level-year-text">—</span>
+            </div>
+            <div class="level-divider"></div>
+            <div class="level-number">
+              <span class="level-no-label">Hole</span>
+              <span id="level-number-text">1</span>
+            </div>
+          </div>
+
+          <button id="play-button" class="btn btn-primary">Play</button>
+          <button id="howto-button" class="btn btn-secondary">How to Play</button>
+
+          <label class="infuriating-toggle">
+            <input type="checkbox" id="infuriating-checkbox" />
+            <span class="toggle-track"><span class="toggle-knob"></span></span>
+            <span class="toggle-label">Infuriating Mode <em>(no checkpoints)</em></span>
+          </label>
+        </div>
+        <div class="hill"></div>
+      </div>
+
+      <!-- How to play modal -->
+      <div id="howto-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-panel">
+          <h2>How to Play</h2>
+          <div class="howto-row">
+            <div class="howto-icon">🎯</div>
+            <div>
+              <strong>Drag and Shoot</strong>
+              <p>Pull the ball back to aim, release to shoot.</p>
+            </div>
+          </div>
+          <div class="howto-row">
+            <div class="howto-icon">⛰️</div>
+            <div>
+              <strong>Climb to the Top</strong>
+              <p>Reach the summit in as few strokes as possible.</p>
+            </div>
+          </div>
+          <div class="howto-row">
+            <div class="howto-icon">🚩</div>
+            <div>
+              <strong>Use Checkpoints</strong>
+              <p>Rest near flags to save your progress. Press C to return.</p>
+            </div>
+          </div>
+          <button id="howto-gotit" class="btn btn-primary">Got it!</button>
+        </div>
+      </div>
+
+      <!-- Gameplay HUD -->
+      <div id="hud" class="hidden">
+        <div class="hud-top-left">
+          <div class="hud-chip" id="hud-strokes">Strokes: 0</div>
+          <div class="hud-chip hud-chip-par" id="hud-par">Par 3</div>
+        </div>
+        <div class="hud-top-right">
+          <button id="hud-checkpoint" class="hud-btn" title="Return to checkpoint (C)">🚩</button>
+          <button id="hud-restart" class="hud-btn" title="Restart hole (R)">↺</button>
+          <button id="hud-menu" class="hud-btn" title="Menu">☰</button>
+        </div>
+        <div id="hud-hint" class="hud-hint">Pull the ball back to aim</div>
+        <div id="hud-wrongway" class="hud-wrongway hidden">Wrong way!</div>
+      </div>
+
+      <!-- Win modal -->
+      <div id="win-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-panel win-panel">
+          <div class="win-header">
+            <span class="win-thumb">👍</span>
+            <h2 id="win-title">You Made It!</h2>
+            <span class="win-thumb">👎</span>
+            <span id="win-par-corner">Par: 3</span>
+          </div>
+
+          <div class="win-score-row">
+            <span id="win-score">8</span><sup id="win-diff" class="win-diff">+5</sup>
+          </div>
+
+          <div id="win-best-line" class="win-best-line">★ New personal best!</div>
+          <div id="win-sub-line" class="win-sub-line">You reached the summit</div>
+
+          <div class="win-map-frame">
+            <canvas id="win-map" width="560" height="320"></canvas>
+          </div>
+
+          <button id="win-replay" class="btn btn-primary win-play-again">Play Again</button>
+
+          <div class="win-btn-row">
+            <button id="win-share" class="btn btn-share">📋 Share Score</button>
+            <button id="win-next" class="btn btn-bonus">⛳ Next Hole</button>
+          </div>
+
+          <div class="win-countdown">New hole in&nbsp;<span id="win-countdown">--:--:--</span></div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
