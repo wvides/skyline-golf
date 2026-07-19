@@ -48,6 +48,8 @@
 
           <button id="play-button" class="btn btn-primary">Play</button>
           <button id="howto-button" class="btn btn-secondary">How to Play</button>
+          <button id="select-level-button" class="btn btn-level">Select Level</button>
+          <button id="random-button" class="btn btn-random">Random Course</button>
 
           <label class="infuriating-toggle">
             <input type="checkbox" id="infuriating-checkbox" />
@@ -85,6 +87,16 @@
             </div>
           </div>
           <button id="howto-gotit" class="btn btn-primary">Got it!</button>
+        </div>
+      </div>
+
+      <!-- Level select modal -->
+      <div id="level-select-modal" class="modal hidden">
+        <div class="modal-backdrop"></div>
+        <div class="modal-panel level-select-panel">
+          <h2>Choose a Level</h2>
+          <div id="level-grid" class="level-grid"></div>
+          <button id="level-select-close" class="btn btn-secondary">Close</button>
         </div>
       </div>
 

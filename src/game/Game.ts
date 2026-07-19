@@ -5,8 +5,9 @@ import { ParticleSystem } from "../effects/ParticleSystem";
 import { TrajectoryLine } from "../effects/TrajectoryLine";
 import { CheckpointManager } from "../level/CheckpointManager";
 import { LevelLoader, type LevelData } from "../level/LevelLoader";
-import { LEVELS } from "../level/levels";
+import { LEVELS, type RawLevel } from "../level/levels";
 import { Tilemap } from "../level/Tilemap";
+import { generateLevel } from "../level/ProceduralLevel";
 import { Ball } from "../physics/Ball";
 import { ColliderBuilder, type SensorColliders } from "../physics/ColliderBuilder";
 import { PhysicsWorld } from "../physics/PhysicsWorld";
@@ -39,6 +40,8 @@ export class Game {
   private level: LevelData | null = null;
   private levelIndex = 0;
   private holeNumber = 1;
+  private isRandomCourse = false;
+  private randomSeed: number | null = null;
 
   private strokes = 0;
   private strokesBySection = new Map<number, number>();
@@ -61,6 +64,9 @@ export class Game {
     ui.onMenu = () => this.goToMenu();
     ui.onCheckpoint = () => this.returnToCheckpoint();
     ui.onNextHole = () => void this.nextHole();
+    ui.onRandomCourse = () => void this.playRandomCourse();
+    ui.onShowLevelSelect = () => this.ui.showLevelSelect(LEVELS.map((l) => ({ title: l.title, par: l.par })));
+    ui.onLevelSelect = (index) => void this.playSelectedLevel(index);
 
     window.addEventListener("keydown", this.onKeyDown);
 
@@ -91,6 +97,7 @@ export class Game {
       highestCheckpoint: this.checkpoints?.highestIndex ?? null,
       trailLength: this.trail.length,
       cameraPos: this.camera ? { x: this.camera.world.x, y: this.camera.world.y } : null,
+      level: this.level ? { title: this.level.title, par: this.level.par, width: this.level.width, height: this.level.height } : null,
     };
   }
 
@@ -118,10 +125,11 @@ export class Game {
     this.ui.showStart();
   }
 
-  private async loadLevel(index: number, infuriating: boolean): Promise<void> {
+  private async loadLevel(index: number, infuriating: boolean, rawLevel?: RawLevel): Promise<void> {
     // Fresh physics world per level (simple, leak-free).
     this.physics = await PhysicsWorld.create();
-    const level = LevelLoader.fromRaw(LEVELS[index], infuriating);
+    const source = rawLevel ?? LEVELS[index];
+    const level = LevelLoader.fromRaw(source, infuriating);
     this.level = level;
 
     const worldW = level.width * TILE_SIZE;
@@ -172,8 +180,10 @@ export class Game {
   // ---------- Flow ----------
 
   private async startFromMenu(): Promise<void> {
+    this.isRandomCourse = false;
     this.ui.hideStart();
     this.ui.hideHowTo();
+    this.ui.hideLevelSelect();
     // Always start on a fresh attempt of today's hole.
     await this.loadLevel(this.levelIndex, this.ui.infuriatingMode);
     this.state = "playing";
@@ -183,9 +193,42 @@ export class Game {
     this.ui.setHint("Pull the ball back to aim");
   }
 
+  private async playRandomCourse(): Promise<void> {
+    this.isRandomCourse = true;
+    this.randomSeed = Math.floor(Math.random() * 1_000_000);
+    this.ui.hideStart();
+    this.ui.hideHowTo();
+    this.ui.hideLevelSelect();
+    await this.loadLevel(0, this.ui.infuriatingMode, generateLevel(this.randomSeed));
+    this.state = "playing";
+    this.input.inputEnabled = true;
+    this.hasEverShot = false;
+    this.ui.showHUD(this.level?.par ?? 3);
+    this.ui.setHint("Pull the ball back to aim");
+  }
+
+  private async playSelectedLevel(index: number): Promise<void> {
+    this.isRandomCourse = false;
+    this.levelIndex = index;
+    this.holeNumber = index + 1;
+    this.ui.hideStart();
+    this.ui.hideHowTo();
+    this.ui.hideLevelSelect();
+    await this.loadLevel(index, this.ui.infuriatingMode);
+    this.state = "playing";
+    this.input.inputEnabled = true;
+    this.hasEverShot = false;
+    this.ui.showHUD(this.level?.par ?? 3);
+    this.ui.setHint("Pull the ball back to aim");
+  }
+
   private async restartLevel(): Promise<void> {
     this.ui.hideWin();
-    await this.loadLevel(this.levelIndex, this.ui.infuriatingMode);
+    if (this.isRandomCourse && this.randomSeed !== null) {
+      await this.loadLevel(0, this.ui.infuriatingMode, generateLevel(this.randomSeed));
+    } else {
+      await this.loadLevel(this.levelIndex, this.ui.infuriatingMode);
+    }
     this.state = "playing";
     this.input.inputEnabled = true;
     this.hasEverShot = false;
@@ -195,9 +238,14 @@ export class Game {
 
   private async nextHole(): Promise<void> {
     this.ui.hideWin();
-    this.levelIndex = (this.levelIndex + 1) % LEVELS.length;
-    this.holeNumber += 1;
-    await this.loadLevel(this.levelIndex, this.ui.infuriatingMode);
+    if (this.isRandomCourse) {
+      this.randomSeed = Math.floor(Math.random() * 1_000_000);
+      await this.loadLevel(0, this.ui.infuriatingMode, generateLevel(this.randomSeed));
+    } else {
+      this.levelIndex = (this.levelIndex + 1) % LEVELS.length;
+      this.holeNumber = this.levelIndex + 1;
+      await this.loadLevel(this.levelIndex, this.ui.infuriatingMode);
+    }
     this.state = "playing";
     this.input.inputEnabled = true;
     this.hasEverShot = false;

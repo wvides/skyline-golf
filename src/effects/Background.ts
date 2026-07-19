@@ -71,12 +71,17 @@ export class Background {
 
   private buildCloud(scale: number, alpha: number): Cloud {
     const g = new Graphics();
-    const c = { color: COLORS.cloud, alpha };
-    g.ellipse(0, 0, 34, 18).fill(c);
-    g.ellipse(-22, 6, 20, 12).fill(c);
-    g.ellipse(22, 6, 22, 13).fill(c);
-    g.ellipse(4, -12, 20, 13).fill(c);
-    g.scale = scale;
+    const shapes = CLOUD_SHAPES[Math.floor(Math.random() * CLOUD_SHAPES.length)];
+    const px = 8 * scale; // pixel size
+    const palette = [0xffffff, 0xe8f4ff, 0xd6ecff];
+    for (let r = 0; r < shapes.length; r++) {
+      for (let c = 0; c < shapes[r].length; c++) {
+        if (shapes[r][c] === "#") {
+          const color = palette[(r * 7 + c * 3) % palette.length];
+          g.rect((c - 5) * px, (r - 2) * px, px, px).fill({ color, alpha });
+        }
+      }
+    }
     return { g, speed: 0, baseY: 0, phase: 0 };
   }
 
@@ -92,8 +97,32 @@ export class Background {
   }
 }
 
+const CLOUD_SHAPES: string[][] = [
+  [
+    "..######..",
+    ".########.",
+    "##########",
+    ".########.",
+    "..######..",
+  ],
+  [
+    "...####...",
+    "..######..",
+    ".########.",
+    "##########",
+    ".########.",
+    "..######..",
+  ],
+  [
+    ".########.",
+    "##########",
+    "##########",
+    ".########.",
+  ],
+];
+
 /** Deterministic tiny PRNG so the sky looks the same for everyone. */
-function mulberry32(seed: number): () => number {
+export function mulberry32(seed: number): () => number {
   let a = seed;
   return () => {
     a |= 0;

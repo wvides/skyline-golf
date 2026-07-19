@@ -58,7 +58,7 @@ body {
   align-items: center;
   justify-content: center;
   background: linear-gradient(to bottom right, #1f79cd, #4e99df);
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .start-content {
@@ -67,8 +67,8 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: 24px;
+  gap: 10px;
+  padding: 20px 24px 100px;
 }
 
 .game-title {
@@ -210,6 +210,52 @@ body {
   transform: translateY(2px);
   box-shadow:
     0 2px 0 #1e3a8a,
+    0 3px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-random {
+  background-color: #7c3aed;
+  border-color: #5b21b6;
+  box-shadow:
+    0 4px 0 #5b21b6,
+    0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-random:hover {
+  background-color: #8b5cf6;
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 #5b21b6,
+    0 8px 12px rgba(0, 0, 0, 0.25);
+}
+
+.btn-random:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 0 #5b21b6,
+    0 3px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-level {
+  background-color: #0d9488;
+  border-color: #115e59;
+  box-shadow:
+    0 4px 0 #115e59,
+    0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-level:hover {
+  background-color: #14b8a6;
+  transform: translateY(-2px);
+  box-shadow:
+    0 6px 0 #115e59,
+    0 8px 12px rgba(0, 0, 0, 0.25);
+}
+
+.btn-level:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 0 #115e59,
     0 3px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -534,6 +580,87 @@ body {
 }
 
 /* ---------- Win modal (score page) ---------- */
+.level-select-panel {
+  max-width: 520px;
+  padding: 22px 24px 26px;
+}
+
+.level-select-panel h2 {
+  margin-bottom: 18px;
+}
+
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 480px) {
+  .level-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.level-card-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  padding: 12px 14px;
+  border: 2px solid #caa66c;
+  border-radius: 10px;
+  background: #fff8e7;
+  cursor: pointer;
+  transition:
+    transform 0.1s ease,
+    background-color 0.1s ease,
+    box-shadow 0.1s ease;
+  font-family: var(--font-body);
+  touch-action: manipulation;
+}
+
+.level-card-item:hover {
+  background: #fff0c7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.level-card-item:active {
+  transform: translateY(0);
+}
+
+.level-card-no {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green-700);
+  color: #fff;
+  border-radius: 50%;
+  font-family: var(--font-headers);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.level-card-title {
+  flex: 1;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--brown-900);
+}
+
+.level-card-par {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brown-700);
+}
+
 .win-panel {
   max-width: 460px;
   padding: 22px 26px 26px;

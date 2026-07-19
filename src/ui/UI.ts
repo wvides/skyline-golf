@@ -5,6 +5,9 @@ export class UI {
   onMenu: (() => void) | null = null;
   onCheckpoint: (() => void) | null = null;
   onNextHole: (() => void) | null = null;
+  onRandomCourse: (() => void) | null = null;
+  onLevelSelect: ((index: number) => void) | null = null;
+  onShowLevelSelect: (() => void) | null = null;
   onInfuriatingChange: ((on: boolean) => void) | null = null;
 
   private el = {
@@ -25,6 +28,9 @@ export class UI {
     hudMenu: byId("hud-menu"),
     hudHint: byId("hud-hint"),
     hudWrongWay: byId("hud-wrongway"),
+    levelSelectModal: byId("level-select-modal"),
+    levelGrid: byId("level-grid"),
+    levelSelectClose: byId("level-select-close"),
     winModal: byId("win-modal"),
     winTitle: byId("win-title"),
     winParCorner: byId("win-par-corner"),
@@ -48,9 +54,15 @@ export class UI {
       this.hideHowTo();
       this.onPlay?.();
     });
+    byId("random-button").addEventListener("click", () => this.onRandomCourse?.());
+    byId("select-level-button")?.addEventListener("click", () => this.onShowLevelSelect?.());
     this.el.howtoModal
       .querySelector(".modal-backdrop")
       ?.addEventListener("click", () => this.hideHowTo());
+    this.el.levelSelectModal
+      .querySelector(".modal-backdrop")
+      ?.addEventListener("click", () => this.hideLevelSelect());
+    this.el.levelSelectClose.addEventListener("click", () => this.hideLevelSelect());
     this.el.winModal
       .querySelector(".modal-backdrop")
       ?.addEventListener("click", () => {}); // deliberate: no dismiss on backdrop
@@ -98,6 +110,28 @@ export class UI {
 
   hideHowTo(): void {
     this.el.howtoModal.classList.add("hidden");
+  }
+
+  // ---------- Level select ----------
+
+  showLevelSelect(levels: { title: string; par: number }[]): void {
+    this.el.levelGrid.innerHTML = "";
+    levels.forEach((level, index) => {
+      const card = document.createElement("button");
+      card.className = "level-card-item";
+      card.innerHTML = `
+        <span class="level-card-no">${index + 1}</span>
+        <span class="level-card-title">${escapeHtml(level.title)}</span>
+        <span class="level-card-par">Par ${level.par}</span>
+      `;
+      card.addEventListener("click", () => this.onLevelSelect?.(index));
+      this.el.levelGrid.appendChild(card);
+    });
+    this.el.levelSelectModal.classList.remove("hidden");
+  }
+
+  hideLevelSelect(): void {
+    this.el.levelSelectModal.classList.add("hidden");
   }
 
   // ---------- HUD ----------
@@ -218,4 +252,10 @@ function byId(id: string): HTMLElement {
   const el = document.getElementById(id);
   if (!el) throw new Error(`Missing UI element #${id}`);
   return el;
+}
+
+function escapeHtml(text: string): string {
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
 }
