@@ -411,9 +411,8 @@ export class Game {
 
   private checkCheckpointActivation(): void {
     if (!this.ball || !this.checkpoints || !this.tilemap) return;
-    if (!this.ball.canShoot) return;
 
-    const activated = this.checkpoints.checkActivation(this.ball.x, this.ball.y, true);
+    const activated = this.checkpoints.checkActivation(this.ball.x, this.ball.y);
     if (activated >= 0) {
       this.tilemap.setFlagActive(activated);
       this.particles.confetti(this.ball.x, this.ball.y - 20);

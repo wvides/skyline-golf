@@ -169,13 +169,15 @@ check(
 );
 await page.screenshot({ path: `${SHOTS}07-checkpoint.png` });
 
-// 9. C respawns at the activated checkpoint after moving away
+// 9. C respawns at the activated checkpoint after moving away.
+// Launch up-left (drag down-right) so the ball doesn't fly past a higher flag,
+// which would now activate it on proximity and change the respawn point.
 const ballPosCp = await page.evaluate(() => window.__game.getBallScreenPos());
 check("Ball grabbable at checkpoint", !!ballPosCp);
 await page.mouse.move(ballPosCp.x, ballPosCp.y);
 await page.mouse.down();
 for (let i = 1; i <= 8; i++) {
-  await page.mouse.move(ballPosCp.x - i * 8, ballPosCp.y + i * 6);
+  await page.mouse.move(ballPosCp.x + i * 8, ballPosCp.y + i * 6);
   await page.waitForTimeout(16);
 }
 await page.mouse.up();
@@ -220,7 +222,23 @@ check(
 );
 await page.screenshot({ path: `${SHOTS}08-after-water.png` });
 
-// 12. Level 1 smoke test via ?level=0
+// 12. Checkpoint activates on proximity (mid-air, no settling) and C returns there
+await page.evaluate(() => window.__game.debugTeleportTile(13, 10));
+await page.waitForTimeout(500);
+const proxState = await page.evaluate(() => window.__game.getDebugState());
+check(
+  "Checkpoint activates on proximity (no rest needed)",
+  proxState.highestCheckpoint === 1,
+  `highestCheckpoint=${proxState.highestCheckpoint}`,
+);
+await page.keyboard.press("c");
+await page.waitForTimeout(400);
+const afterProxC = await page.evaluate(() => window.__game.getDebugState());
+// Flag (13,10) center = (432, 336) world px
+const distToFlag1 = Math.hypot(afterProxC.ballPx.x - 432, afterProxC.ballPx.y - 336);
+check("C returns ball to latest checkpoint", distToFlag1 < 90, `dist=${distToFlag1.toFixed(0)}px`);
+
+// 13. Level 1 smoke test via ?level=0
 await page.goto(BASE, { waitUntil: "networkidle" });
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 20000 });
 await page.click("#play-button");

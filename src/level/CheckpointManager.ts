@@ -27,11 +27,12 @@ export class CheckpointManager {
   }
 
   /**
-   * Check whether the ball is resting near a flag and activate it.
+   * Check whether the ball is near a flag and activate it.
+   * Proximity is enough — the ball does not need to be resting, so the
+   * latest checkpoint always tracks the player's furthest progress.
    * Returns the flag index when a NEW checkpoint was activated this call.
    */
-  checkActivation(ballXPx: number, ballYPx: number, ballResting: boolean): number {
-    if (!ballResting) return -1;
+  checkActivation(ballXPx: number, ballYPx: number): number {
     const cfg = PHYSICS_CONFIG.checkpoint;
     const ballCol = ballXPx / TILE_SIZE;
     const ballRow = ballYPx / TILE_SIZE;
