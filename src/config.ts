@@ -48,8 +48,10 @@ export const PHYSICS_CONFIG = {
   },
 
   checkpoint: {
-    activationRadiusXTiles: 6,
-    activationRadiusYTiles: 2,
+    // Tight box around the flag itself: the ball must get within ~1.5 tiles
+    // of the flag, not just anywhere on the flag's platform.
+    activationRadiusXTiles: 1.5,
+    activationRadiusYTiles: 1.5,
   },
 } as const;
 

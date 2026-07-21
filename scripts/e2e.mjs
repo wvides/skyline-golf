@@ -148,7 +148,25 @@ check(
   JSON.stringify({ state: replayState.state, strokes: replayState.strokes }),
 );
 
-// 8. Checkpoint activation: teleport next to the lowest flag on level 0 (4,22).
+// 8. Landing on the flag's platform but FAR from the flag must NOT activate it.
+// The platform spans cols 3-9; the flag is at col 4 — land at the far end (col 8).
+await page.evaluate(() => window.__game.debugTeleportTile(8, 21));
+await page.waitForFunction(
+  () => {
+    const s = window.__game.getDebugState();
+    return s.canShoot === true && s.ballPx.y > 640;
+  },
+  null,
+  { timeout: 10000 },
+);
+const farState = await page.evaluate(() => window.__game.getDebugState());
+check(
+  "Platform far from flag does not activate checkpoint",
+  farState.highestCheckpoint === -1,
+  `highestCheckpoint=${farState.highestCheckpoint}`,
+);
+
+// 9. Checkpoint activation: teleport next to the lowest flag on level 0 (4,22).
 // Wait for the ball to actually land and settle on the platform (not the stale
 // grounded state carried over from before the teleport).
 await page.evaluate(() => window.__game.debugTeleportTile(4, 21));
@@ -169,7 +187,7 @@ check(
 );
 await page.screenshot({ path: `${SHOTS}07-checkpoint.png` });
 
-// 9. C respawns at the activated checkpoint after moving away.
+// 10. C respawns at the activated checkpoint after moving away.
 // Launch up-left (drag down-right) so the ball doesn't fly past a higher flag,
 // which would now activate it on proximity and change the respawn point.
 const ballPosCp = await page.evaluate(() => window.__game.getBallScreenPos());
@@ -190,7 +208,7 @@ const afterRespawn = await page.evaluate(() => window.__game.getDebugState());
 const distToFlag = Math.hypot(afterRespawn.ballPx.x - 144, afterRespawn.ballPx.y - 720);
 check("C respawns at checkpoint flag", distToFlag < 90, `dist=${distToFlag.toFixed(0)}px`);
 
-// 10. Camera pan: drag empty space while ball rests
+// 11. Camera pan: drag empty space while ball rests
 const camBefore = (await page.evaluate(() => window.__game.getDebugState())).cameraPos;
 await page.mouse.move(640, 300);
 await page.mouse.down();
@@ -207,7 +225,7 @@ check(
   `y ${camBefore.y.toFixed(0)} -> ${camAfter.y.toFixed(0)}`,
 );
 
-// 11. Water hazard resets the ball to the checkpoint
+// 12. Water hazard resets the ball to the checkpoint
 await page.evaluate(() => window.__game.debugTeleportTile(10, 28));
 await page.waitForTimeout(250);
 const duringWater = await page.evaluate(() => window.__game.getDebugState());
@@ -222,7 +240,7 @@ check(
 );
 await page.screenshot({ path: `${SHOTS}08-after-water.png` });
 
-// 12. Checkpoint activates on proximity (mid-air, no settling) and C returns there
+// 13. Checkpoint activates on proximity (mid-air, no settling) and C returns there
 await page.evaluate(() => window.__game.debugTeleportTile(13, 10));
 await page.waitForTimeout(500);
 const proxState = await page.evaluate(() => window.__game.getDebugState());
@@ -238,7 +256,7 @@ const afterProxC = await page.evaluate(() => window.__game.getDebugState());
 const distToFlag1 = Math.hypot(afterProxC.ballPx.x - 432, afterProxC.ballPx.y - 336);
 check("C returns ball to latest checkpoint", distToFlag1 < 90, `dist=${distToFlag1.toFixed(0)}px`);
 
-// 13. Level 1 smoke test via ?level=0
+// 14. Level 1 smoke test via ?level=0
 await page.goto(BASE, { waitUntil: "networkidle" });
 await page.waitForFunction(() => window.__ready === true, null, { timeout: 20000 });
 await page.click("#play-button");
@@ -258,7 +276,7 @@ const l1After = await page.evaluate(() => window.__game.getDebugState());
 check("Level 1 shot registers", l1After.strokes === 1, `strokes=${l1After.strokes}`);
 await page.screenshot({ path: `${SHOTS}09-level1.png` });
 
-// 13. Level select: open modal and choose a generated level
+// 15. Level select: open modal and choose a generated level
 await page.keyboard.press("Escape");
 await page.waitForTimeout(400);
 await page.click("#select-level-button");
@@ -269,7 +287,7 @@ await page.waitForTimeout(800);
 const selected = await page.evaluate(() => window.__game.getDebugState());
 check("Selected level starts", selected.state === "playing", selected.state);
 
-// 14. Random course loads a different procedural level
+// 16. Random course loads a different procedural level
 await page.keyboard.press("Escape");
 await page.waitForTimeout(400);
 await page.click("#random-button");
